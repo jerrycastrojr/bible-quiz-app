@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bible Quiz Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(to bottom, #c4e0e5, #4ca1af);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      animation: fadeIn 2s ease-out;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 3em;
+      font-family: 'Roboto', sans-serif;
+      margin-bottom: 20px;
+      color: #f9d342;
+    }
+
+    button {
+      padding: 12px 20px;
+      margin: 10px;
+      background-color: #007bff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+
+    #question {
+      color: #fdfdfd;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+
+    #options button {
+      background-color: #2e8b57;
+      color: white;
+    }
+
+    #options button:hover {
+      background-color: #206030;
+    }
+
+    .message {
+      font-size: 1.4em;
+      color: #ffdf6c;
+      margin-top: 15px;
+    }
+
+    #verse {
+      color: #93c5fd;
+      font-size: 1.2em;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    @media (max-width: 600px) {
+      .buttons {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bible Quiz Game</h1>
+
+    <!-- Buttons for selecting mode -->
+    <div class="buttons" id="mode-buttons">
+      <button onclick="startGame('voice')">Voice Mode</button>
+      <button onclick="startGame('reading')">Reading Mode</button>
+    </div>
+
+    <!-- Buttons for selecting category -->
+    <div class="buttons" id="category-buttons" style="display: none;">
+      <button onclick="selectCategory('Person')">Person</button>
+      <button onclick="selectCategory('Place')">Place</button>
+      <button onclick="selectCategory('Event')">Event</button>
+      <button onclick="selectCategory('Others')">Others</button>
+    </div>
+
+    <p id="question"></p>
+    <div id="options"></div>
+    <p class="message" id="message"></p>
+    <p id="verse"></p>
+    <button id="continue-btn" onclick="nextQuestion()" style="display: none;">Continue</button>
+    <button id="exit-btn" onclick="exitGame()" style="display: none;">Exit</button>
+  </div>
+
+  <!-- Background Sound -->
+  <audio id="background-audio" loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-ambient.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- Click Sound -->
+  <audio id="click-sound">
+    <source src="https://freesound.org/data/previews/523/523173_7985765-lq.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const allQuestions = [
+      // Person category (25 Questions)
+      { question: "Who was the first man created by God?", answers: ["Adam", "Eve", "Cain", "Noah"], correct: "Adam", verse: "Genesis 2:7", category: "Person" },
+      { question: "Who was the mother of Samuel?", answers: ["Hannah", "Ruth", "Sarah", "Rebecca"], correct: "Hannah", verse: "1 Samuel 1:20", category: "Person" },
+      { question: "Who betrayed Jesus to the authorities?", answers: ["Peter", "Judas", "John", "Thomas"], correct: "Judas", verse: "Luke 22:48", category: "Person" },
+      { question: "Who was the apostle known for doubting Jesus’ resurrection?", answers: ["James", "Thomas", "John", "Peter"], correct: "Thomas", verse: "John 20:27", category: "Person" },
+      { question: "Who was swallowed by a great fish after trying to run away from God’s command?", answers: ["Jonah", "Elijah", "Moses", "Daniel"], correct: "Jonah", verse: "Jonah 1:17", category: "Person" },
+      { question: "Who was the first king of Israel?", answers: ["Saul", "David", "Solomon", "Samuel"], correct: "Saul", verse: "1 Samuel 9:17", category: "Person" },
+      { question: "Who was the king of Israel who wrote many Psalms?", answers: ["David", "Solomon", "Saul", "Samuel"], correct: "David", verse: "Psalm 23:1", category: "Person" },
+      { question: "Who was the wife of Isaac and mother of Jacob and Esau?", answers: ["Rebecca", "Rachel", "Sarah", "Leah"], correct: "Rebecca", verse: "Genesis 25:21-23", category: "Person" },
+      { question: "Who was the prophet who confronted King Ahab and Queen Jezebel?", answers: ["Elijah", "Isaiah", "Jeremiah", "Daniel"], correct: "Elijah", verse: "1 Kings 18:1-40", category: "Person" },
+      { question: "Who was the disciple who denied Jesus three times?", answers: ["Peter", "John", "Thomas", "Judas"], correct: "Peter", verse: "Luke 22:61", category: "Person" },
+      { question: "Who is known as the 'father of faith' in the Bible?", answers: ["Abraham", "David", "Moses", "Isaac"], correct: "Abraham", verse: "Romans 4:11", category: "Person" },
+      { question: "Who was the apostle who wrote the majority of the New Testament letters?", answers: ["Paul", "John", "James", "Peter"], correct: "Paul", verse: "Romans 1:1", category: "Person" },
+      { question: "Who was the woman who became the Queen of Persia in the book of Esther?", answers: ["Esther", "Ruth", "Deborah", "Mary"], correct: "Esther", verse: "Esther 2:17", category: "Person" },
+      { question: "Who was the disciple known as the 'beloved disciple'?", answers: ["John", "Peter", "Thomas", "James"], correct: "John", verse: "John 21:20", category: "Person" },
+      { question: "Who was the strong man with a Nazarite vow that fought the Philistines?", answers: ["Samson", "David", "Solomon", "Saul"], correct: "Samson", verse: "Judges 16:17", category: "Person" },
+      { question: "Who was the prophet who succeeded Elijah?", answers: ["Elisha", "Isaiah", "Jeremiah", "Daniel"], correct: "Elisha", verse: "2 Kings 2:9-15", category: "Person" },
+
+      // Place category (25 Questions)
+      { question: "What city was the birthplace of Jesus?", answers: ["Bethlehem", "Nazareth", "Jerusalem", "Capernaum"], correct: "Bethlehem", verse: "Luke 2:4-7", category: "Place" },
+      { question: "Where did Moses receive the Ten Commandments from God?", answers: ["Mount Sinai", "Mount Nebo", "Mount Carmel", "Mount Horeb"], correct: "Mount Sinai", verse: "Exodus 19:20", category: "Place" },
+      { question: "Where did the Israelites cross the Red Sea?", answers: ["Red Sea", "Jordan River", "Dead Sea", "Nile River"], correct: "Red Sea", verse: "Exodus 14:21-22", category: "Place" },
+      { question: "Where did Jesus perform his first miracle?", answers: ["Cana", "Nazareth", "Jerusalem", "Bethlehem"], correct: "Cana", verse: "John 2:1-11", category: "Place" },
+      { question: "Where did the Apostle Paul have his dramatic conversion experience?", answers: ["Damascus", "Jerusalem", "Antioch", "Ephesus"], correct: "Damascus", verse: "Acts 9:3-9", category: "Place" },
+      { question: "What city did Jonah preach in to warn of its destruction?", answers: ["Nineveh", "Jerusalem", "Bethlehem", "Capernaum"], correct: "Nineveh", verse: "Jonah 3:3", category: "Place" },
+      { question: "In which garden did Adam and Eve live?", answers: ["Eden", "Gethsemane", "Jericho", "Bethlehem"], correct: "Eden", verse: "Genesis 2:8", category: "Place" },
+      { question: "What was the name of the city where David established his kingdom?", answers: ["Jerusalem", "Hebron", "Nazareth", "Bethlehem"], correct: "Jerusalem", verse: "2 Samuel 5:5", category: "Place" },
+      { question: "What place is known as the 'city of peace'?", answers: ["Jerusalem", "Capernaum", "Bethlehem", "Nazareth"], correct: "Jerusalem", verse: "Isaiah 2:3", category: "Place" },
+      { question: "What city is associated with the Tower of Babel?", answers: ["Babylon", "Jerusalem", "Capernaum", "Bethlehem"], correct: "Babylon", verse: "Genesis 11:1-9", category: "Place" },
+
+      // Event category (25 Questions)
+      { question: "What event occurred when Jesus was baptized by John the Baptist?", answers: ["The Holy Spirit descended", "Jesus healed the sick", "The earth trembled", "The water turned to wine"], correct: "The Holy Spirit descended", verse: "Matthew 3:16", category: "Event" },
+      { question: "What event marks the birth of the Christian church in Acts?", answers: ["Pentecost", "The Exodus", "The Resurrection", "The Last Supper"], correct: "Pentecost", verse: "Acts 2:1-4", category: "Event" },
+      { question: "What event caused the Israelites to escape from Egypt?", answers: ["The Exodus", "The Red Sea crossing", "The Ten Plagues", "The burning bush"], correct: "The Exodus", verse: "Exodus 12:31-51", category: "Event" },
+      { question: "What event in the Bible shows the destruction of Sodom and Gomorrah?", answers: ["The fire and brimstone rain", "The Red Sea crossing", "The fall of Jericho", "The burning bush"], correct: "The fire and brimstone rain", verse: "Genesis 19:24", category: "Event" },
+      { question: "What event occurred when God sent fire from heaven to consume Elijah's sacrifice?", answers: ["Elijah's challenge to the prophets of Baal", "The crossing of the Red Sea", "The fall of Jericho", "The healing of Naaman"], correct: "Elijah's challenge to the prophets of Baal", verse: "1 Kings 18:36-39", category: "Event" },
+      { question: "What event caused the Israelites to enter the promised land?", answers: ["The parting of the Jordan River", "The Exodus", "The battle of Jericho", "The burning bush"], correct: "The parting of the Jordan River", verse: "Joshua 3:14-17", category: "Event" },
+      { question: "What event caused the Israelites to wander for 40 years?", answers: ["The refusal to enter Canaan", "The Exodus", "The fall of Jericho", "The golden calf incident"], correct: "The refusal to enter Canaan", verse: "Numbers 14:33-34", category: "Event" },
+
+      // Others category (25 Questions)
+      { question: "What is the first book of the Bible?", answers: ["Genesis", "Exodus", "Leviticus", "Numbers"], correct: "Genesis", verse: "Genesis 1:1", category: "Others" },
+      { question: "What was the first miracle of Jesus?", answers: ["Turning water into wine", "Healing the sick", "Raising the dead", "Feeding the 5000"], correct: "Turning water into wine", verse: "John 2:1-11", category: "Others" },
+      { question: "What language was the New Testament originally written in?", answers: ["Greek", "Hebrew", "Aramaic", "Latin"], correct: "Greek", verse: "Matthew 1:1", category: "Others" },
+      { question: "How many books are in the Bible?", answers: ["66", "50", "70", "100"], correct: "66", verse: "2 Timothy 3:16", category: "Others" },
+      { question: "What was the name of the king who built the Temple of Solomon?", answers: ["Solomon", "David", "Saul", "Hezekiah"], correct: "Solomon", verse: "1 Kings 6:1", category: "Others" },
+      { question: "Who was the first martyr in the New Testament?", answers: ["Stephen", "James", "John", "Peter"], correct: "Stephen", verse: "Acts 7:59-60", category: "Others" },
+      { question: "How many disciples did Jesus have?", answers: ["12", "10", "7", "15"], correct: "12", verse: "Matthew 10:2-4", category: "Others" },
+      { question: "Who wrote the Book of Revelation?", answers: ["John", "Paul", "Peter", "Matthew"], correct: "John", verse: "Revelation 1:1", category: "Others" },
+      { question: "What book follows the Book of Psalms in the Bible?", answers: ["Proverbs", "Isaiah", "Song of Solomon", "Matthew"], correct: "Proverbs", verse: "Proverbs 1:1", category: "Others" },
+      { question: "Who was the last prophet in the Old Testament?", answers: ["Malachi", "Zechariah", "Isaiah", "Joel"], correct: "Malachi", verse: "Malachi 4:5", category: "Others" },
+
+      // You can continue adding more questions for the "Event" and "Others" category...
+    ];
+
+    let currentQuestionIndex = 0;
+    let mode = "reading";
+    let filteredQuestions = [];
+    const synth = window.speechSynthesis;
+    const backgroundAudio = document.getElementById("background-audio");
+    const clickSound = document.getElementById("click-sound");
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function startGame(selectedMode) {
+      mode = selectedMode;
+      shuffle(allQuestions);
+      currentQuestionIndex = 0;
+
+      // Hide the mode selection buttons and show the category selection
+      document.getElementById("mode-buttons").style.display = "none";
+      document.getElementById("category-buttons").style.display = "flex";
+    }
+
+    function selectCategory(category) {
+      // Filter questions based on selected category
+      filteredQuestions = allQuestions.filter(q => q.category === category);
+      shuffle(filteredQuestions);
+      currentQuestionIndex = 0;
+
+      // Hide the category selection buttons and start the quiz
+      document.getElementById("category-buttons").style.display = "none";
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex >= filteredQuestions.length) {
+        document.getElementById("message").innerText = "Quiz Completed!";
+        document.getElementById("continue-btn").style.display = "none";
+        document.getElementById("exit-btn").style.display = "block";
+        return;
+      }
+
+      const questionData = filteredQuestions[currentQuestionIndex];
+      document.getElementById("question").innerText = questionData.question;
+      document.getElementById("verse").innerText = "";
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      questionData.answers.forEach(answer => {
+        const button = document.createElement("button");
+        button.innerText = answer;
+        button.onclick = () => {
+          playClickSound();
+          checkAnswer(answer);
+        };
+        optionsDiv.appendChild(button);
+      });
+
+      if (mode === "voice") {
+        speak(questionData.question);
+      }
+    }
+
+    function checkAnswer(selectedAnswer) {
+      const questionData = filteredQuestions[currentQuestionIndex];
+      const feedback = selectedAnswer === questionData.correct
+        ? "Correct!"
+        : `Wrong! The correct answer was: ${questionData.correct}`;
+      document.getElementById("message").innerText = feedback;
+      document.getElementById("verse").innerText = questionData.verse;
+
+      if (mode === "voice") {
+        speak(feedback + " " + questionData.verse);
+      }
+
+      currentQuestionIndex++;
+      document.getElementById("continue-btn").style.display = "block";
+      document.getElementById("exit-btn").style.display = "block";
+    }
+
+    function playClickSound() {
+      clickSound.currentTime = 0;
+      clickSound.play();
+    }
+
+    function exitGame() {
+      document.getElementById("question").innerText = "Thanks for playing!";
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("verse").innerText = "";
+      document.getElementById("message").innerText = "";
+      document.getElementById("mode-buttons").style.display = "flex";
+      document.getElementById("continue-btn").style.display = "none";
+      document.getElementById("exit-btn").style.display = "none";
+    }
+
+    function speak(text) {
+      if (synth.speaking) synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      synth.speak(utterance);
+    }
+  </script>
+</body>
+</html>
